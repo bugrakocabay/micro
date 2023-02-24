@@ -14,7 +14,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-const PORT = "80"
+const webPort = "80"
 
 var counts int64
 
@@ -24,20 +24,22 @@ type Config struct {
 }
 
 func main() {
-	log.Printf("starting authentication service on port: %s", PORT)
+	log.Println("Starting authentication service")
 
+	// connect to DB
 	conn := connectToDB()
 	if conn == nil {
-		log.Panic("can't connect to postgres")
+		log.Panic("Can't connect to Postgres!")
 	}
 
+	// set up config
 	app := Config{
 		DB:     conn,
 		Models: data.New(conn),
 	}
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", PORT),
+		Addr:    fmt.Sprintf(":%s", webPort),
 		Handler: app.routes(),
 	}
 
@@ -67,10 +69,10 @@ func connectToDB() *sql.DB {
 	for {
 		connection, err := openDB(dsn)
 		if err != nil {
-			log.Println("postgres not yet ready...")
+			log.Println("Postgres not yet ready ...")
 			counts++
 		} else {
-			log.Println("connected to postgres!")
+			log.Println("Connected to Postgres!")
 			return connection
 		}
 
@@ -79,7 +81,7 @@ func connectToDB() *sql.DB {
 			return nil
 		}
 
-		log.Println("backing off for two seconds...")
+		log.Println("Backing off for two seconds....")
 		time.Sleep(2 * time.Second)
 		continue
 	}
