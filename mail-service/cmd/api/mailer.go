@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"html/template"
+	"log"
 	"time"
 
 	"github.com/vanng822/go-premailer/premailer"
@@ -30,7 +31,7 @@ type Message struct {
 	DataMap     map[string]any
 }
 
-func (m *Mail) sendSMTPMessage(msg Message) error {
+func (m *Mail) SendSMTPMessage(msg Message) error {
 	if msg.From == "" {
 		msg.From = m.FromAddress
 	}
@@ -67,6 +68,7 @@ func (m *Mail) sendSMTPMessage(msg Message) error {
 
 	smtpClient, err := server.Connect()
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -86,6 +88,7 @@ func (m *Mail) sendSMTPMessage(msg Message) error {
 
 	err = email.Send(smtpClient)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -158,7 +161,7 @@ func (m *Mail) getEncryption(s string) mail.Encryption {
 		return mail.EncryptionSTARTTLS
 	case "ssl":
 		return mail.EncryptionSSLTLS
-	case "none":
+	case "none", "":
 		return mail.EncryptionNone
 	default:
 		return mail.EncryptionSTARTTLS

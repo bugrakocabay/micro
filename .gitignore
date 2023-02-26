@@ -1,3 +1,6 @@
 /project/db-data/
 .idea
 .DS_Store
+/listener-service/listenerApp
+/mail-service/mailerApp
+/logger-service/loggerServiceApp
