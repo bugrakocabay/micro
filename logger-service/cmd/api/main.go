@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/bugrakocabay/logger-service/data"
 	"log"
+	"net"
 	"net/http"
+	"net/rpc"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,6 +51,12 @@ func main() {
 		Models: data.New(client),
 	}
 
+	// Register RPC Server
+	err = rpc.Register(new(RPCServer))
+	go app.rpcListen()
+
+	go app.gRPCListen()
+
 	log.Printf("Starting logger service on port: %s\n", PORT)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", PORT),
@@ -57,6 +65,24 @@ func main() {
 
 	if err = srv.ListenAndServe(); err != nil {
 		log.Panic(err)
+	}
+}
+
+func (app *Config) rpcListen() error {
+	log.Println("Starting Log RPC server on port ", rpcPORT)
+	listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", rpcPORT))
+	if err != nil {
+		return err
+	}
+	defer listen.Close()
+
+	for {
+		rpcConn, err := listen.Accept()
+		if err != nil {
+			continue
+		}
+
+		go rpc.ServeConn(rpcConn)
 	}
 }
 
